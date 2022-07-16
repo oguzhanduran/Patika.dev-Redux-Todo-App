@@ -9,6 +9,7 @@ function Form() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!title) return;
     dispatch(
       addTodo({
         id: nanoid(),
@@ -16,6 +17,8 @@ function Form() {
         completed: false,
       })
     );
+
+    setTitle("");
   }
   return (
     <div>

@@ -15,6 +15,7 @@ export const todosSlice = createSlice({
         completed: false,
       },
     ],
+    activeFilter: "all",
   },
 
   reducers: {
@@ -35,8 +36,31 @@ export const todosSlice = createSlice({
       const filtered = state.items.filter((item) => item.id !== id);
       state.items = filtered;
     },
+
+    ChangeActiveFilter: (state, action) => {
+      state.activeFilter = action.payload;
+    },
+
+    clearCompleted: (state) => {
+      const filtered = state.items.filter((item) => item.completed === false);
+      state.items = filtered;
+    },
   },
 });
 
-export const { addTodo, toggle, destroy } = todosSlice.actions;
+export const selectTodos = (state) => state.todos.items;
+export const selectActiveFilter = (state) => state.todos.activeFilter;
+export const selectFilteredTodos = (state) => {
+  if (state.todos.activeFilter === "all") {
+    return state.todos.items;
+  }
+  return state.todos.items.filter((todo) =>
+    state.todos.activeFilter === "active"
+      ? todo.completed === false
+      : todo.completed === true
+  );
+};
+
+export const { addTodo, toggle, destroy, ChangeActiveFilter, clearCompleted } =
+  todosSlice.actions;
 export default todosSlice.reducer; // Bunu store'da import edip reducer field'ına vereceğiz.

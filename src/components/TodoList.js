@@ -1,9 +1,15 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { toggle, destroy } from "../redux/todos/todosSlice";
+import {
+  toggle,
+  destroy,
+  selectTodos,
+  selectFilteredTodos,
+} from "../redux/todos/todosSlice";
 
 function TodoList() {
-  const items = useSelector((state) => state.todos.items);
+  const filteredTodos = useSelector(selectFilteredTodos);
+
   const dispatch = useDispatch();
 
   const handleDestroy = (id) => {
@@ -12,11 +18,10 @@ function TodoList() {
     }
   };
 
-  console.log(items);
   return (
     <div>
       <ul className="todo-list">
-        {items.map((item) => (
+        {filteredTodos.map((item) => (
           <li
             key={item.id}
             className={item.completed === true ? "completed" : ""}
@@ -43,4 +48,4 @@ function TodoList() {
 
 export default TodoList;
 
-//
+// selectorler ile herhangi bir state altındaki herhangi bir elemanı seçtirebiliriz sonrada o seçimi import edip doğrudan kullanabiliriz.
