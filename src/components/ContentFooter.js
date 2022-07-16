@@ -14,7 +14,7 @@ function ContentFooter() {
           </a>
         </li>
         <li>
-          <a href="#/">Active</a>
+          <a href="#/">Activ</a>
         </li>
         <li>
           <a href="#/">Completed</a>
