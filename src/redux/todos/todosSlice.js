@@ -17,11 +17,28 @@ export const getTodosAsync = createAsyncThunk(
 
 // Sonra oluşturduğum getTodosAsync tanımımı kullanmak istediğim componentte içeri import ediyorum. Sonra useEffect içersinde component mount olduğu anda dispatch ediyorum. Ve eğer isLoading aktifse loading'de gösteriyoruz hata varsa error'da gösteriyoruz.
 
+//  add todo
+
 export const addTodoAsync = createAsyncThunk(
   "todos/addTodoAsync",
   async (data) => {
     const res = await axios.post(
       `${process.env.REACT_APP_API_BASE_ENDPOINT}/todos`,
+      data
+    );
+    return res.data;
+  }
+);
+
+// update todo
+
+export const toggleTodoAsync = createAsyncThunk(
+  "todos/toggleTodoAsync",
+  async ({ id, data }) => {
+    // data parametresinin içinde güncellenmek istenen todo'nun id'si olacak ve ne olarak güncellenecek true mu olacak completed false'mu olacak onu alacağımız ifadeler bu data'nın içersinde olacak.
+
+    const res = await axios.patch(
+      `${process.env.REACT_APP_API_BASE_ENDPOINT}/todos/${id}`,
       data
     );
     return res.data;
@@ -60,13 +77,13 @@ export const todosSlice = createSlice({
     //   },
     // },
 
-    toggle: (state, action) => {
-      const { id } = action.payload;
+    // toggle: (state, action) => {
+    //   const { id } = action.payload;
 
-      const item = state.items.find((item) => item.id === id);
+    //   const item = state.items.find((item) => item.id === id);
 
-      item.completed = !item.completed;
-    },
+    //   item.completed = !item.completed;
+    // },
 
     destroy: (state, action) => {
       const id = action.payload;
@@ -114,6 +131,14 @@ export const todosSlice = createSlice({
       state.addNewTodoIsLoading = false;
       state.addNewTodoError = action.error.message;
     },
+
+    // update todo
+
+    [toggleTodoAsync.fulfilled]: (state, action) => {
+      const { id, completed } = action.payload;
+      const index = state.items.findIndex((item) => item.id === id);
+      state.items[index].completed = completed;
+    },
   },
 });
 
@@ -130,6 +155,6 @@ export const selectFilteredTodos = (state) => {
   );
 };
 
-export const { toggle, destroy, ChangeActiveFilter, clearCompleted } =
+export const { destroy, ChangeActiveFilter, clearCompleted } =
   todosSlice.actions;
 export default todosSlice.reducer; // Bunu store'da import edip reducer field'ına vereceğiz.
