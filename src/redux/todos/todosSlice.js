@@ -1,19 +1,32 @@
-import { createSlice, nanoid, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const getTodosAsync = createAsyncThunk(
   "todos/getTodosAsync/",
   async () => {
-    const res = await axios.get("http://localhost:7000/todos");
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_BASE_ENDPOINT}/todos`
+    );
     return res.data;
   }
 );
 
-// Biz eğer asengron bir işlem yapmak istiyorsak API'ye gitmek veya farklı bir asengron işlem bu noktada middleware'lara ihtiyacımız olabiliyor mesela bir logging işlemi yapmak istiyorsak ve log tutmak istiyorsak bu state değişimi ile alakalı o zamanda bir middleware yazmamız gerekecek veya hazır yazılmış bir middleware kullanmamız gerekecek. Bizim burda amacımız API'ye gidip ordan veriyi almak burda thunk'ı kullandık zaten redux tarafına baktığımızda kullanılan araç thunk genelde.
+// Biz eğer asengron bir işlem yapmak istiyorsak API'ye gitmek veya farklı bir asengron işlem bu noktada middleware'lara ihtiyacımız olabiliyor mesela bir logging işlemi yapmak istiyorsak ve log tutmak istiyorsak bu state değişimi ile alakalı o zamanda bir middleware yazmamız gerekecek ve ya hazır yazılmış bir middleware kullanmamız gerekecek. Bizim burda amacımız API'ye gidip ordan veriyi almak burda thunk'ı kullandık zaten redux tarafına baktığımızda kullanılan araç thunk genelde.
 
 // Thunk'ın 2 parametresi var 1. action name'i belirtiyorum. 2.'de data'yı fetch edecek fonksiyonu. Sonra createSlice'ın içinde extraReducers denilen bir tanım var. Pending fullfilled rejected tanımlarını bizim yerimize oluşturuyor. Ben pending, fulfilled, rejected durumlarında state'in nasıl güncellenmesi gerektiğini içlerinde belirtiyorum.
 
 // Sonra oluşturduğum getTodosAsync tanımımı kullanmak istediğim componentte içeri import ediyorum. Sonra useEffect içersinde component mount olduğu anda dispatch ediyorum. Ve eğer isLoading aktifse loading'de gösteriyoruz hata varsa error'da gösteriyoruz.
+
+export const addTodoAsync = createAsyncThunk(
+  "todos/addTodoAsync",
+  async (data) => {
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_BASE_ENDPOINT}/todos`,
+      data
+    );
+    return res.data;
+  }
+);
 
 export const todosSlice = createSlice({
   name: "todos",
@@ -22,28 +35,30 @@ export const todosSlice = createSlice({
     isLoading: false,
     error: null,
     activeFilter: "all",
+    addNewTodoIsLoading: false,
+    addNewTodoError: null,
   },
 
   reducers: {
-    addTodo: {
-      reducer: (state, action) => {
-        state.items.push(action.payload);
-        // reducer tanımının içersinde prapere isminde bir tanım var bunu kullabiliyoruz. Prapere ile reducer state'ini değiştirmeden önce siz ona gelecek olan payload'u yapılandırabiliyoruz.
+    // addTodo: {
+    //   reducer: (state, action) => {
+    //     state.items.push(action.payload);
+    //     // reducer tanımının içersinde prapere isminde bir tanım var bunu kullabiliyoruz. Prapere ile reducer state'ini değiştirmeden önce siz ona gelecek olan payload'u yapılandırabiliyoruz.
 
-        // Biz formda addTodo action'ını dispatch ettiğimiz zaman title payload olarak gönderiliyor ve prepare'e düşüyor. Sonra payload return ediliyor. Sonra return edilen payload'da yukardaki action'ın içine düşüyor. Sonra da biz action altındaki payload'u kullanarak state elemanıma ekliyorum.
+    //     // Biz formda addTodo action'ını dispatch ettiğimiz zaman title payload olarak gönderiliyor ve prepare'e düşüyor. Sonra payload return ediliyor. Sonra return edilen payload'da yukardaki action'ın içine düşüyor. Sonra da biz action altındaki payload'u kullanarak state elemanıma ekliyorum.
 
-        // Prepare'in yaptığı şey reducers state'i değiştirmeden önce siz ona gelecek olan payload'u yapılandırabiliyorsunuz demek.
-      },
-      prepare: ({ title }) => {
-        return {
-          payload: {
-            id: nanoid(),
-            completed: false,
-            title,
-          },
-        };
-      },
-    },
+    //     // Prepare'in yaptığı şey reducers state'i değiştirmeden önce siz ona gelecek olan payload'u yapılandırabiliyorsunuz demek.
+    //   },
+    //   prepare: ({ title }) => {
+    //     return {
+    //       payload: {
+    //         id: nanoid(),
+    //         completed: false,
+    //         title,
+    //       },
+    //     };
+    //   },
+    // },
 
     toggle: (state, action) => {
       const { id } = action.payload;
@@ -70,6 +85,7 @@ export const todosSlice = createSlice({
   },
 
   extraReducers: {
+    //get todos
     [getTodosAsync.pending]: (state, action) => {
       state.isLoading = true;
     },
@@ -83,6 +99,21 @@ export const todosSlice = createSlice({
     },
     // ilk istek başladığı anda pending yani bekleme durumunda yani istek başlamış ama herhangi bir respond dönmemiş.
     // Fullfilled olduğunda ise işlem problemsiz bir şekilde çalışıyor demek.
+
+    //add todo
+
+    [addTodoAsync.pending]: (state, action) => {
+      state.addNewTodoIsLoading = true;
+    },
+
+    [addTodoAsync.fulfilled]: (state, action) => {
+      state.items.push(action.payload);
+      state.addNewTodoIsLoading = false;
+    },
+    [addTodoAsync.rejected]: (state, action) => {
+      state.addNewTodoIsLoading = false;
+      state.addNewTodoError = action.error.message;
+    },
   },
 });
 
@@ -99,6 +130,6 @@ export const selectFilteredTodos = (state) => {
   );
 };
 
-export const { addTodo, toggle, destroy, ChangeActiveFilter, clearCompleted } =
+export const { toggle, destroy, ChangeActiveFilter, clearCompleted } =
   todosSlice.actions;
 export default todosSlice.reducer; // Bunu store'da import edip reducer field'ına vereceğiz.
