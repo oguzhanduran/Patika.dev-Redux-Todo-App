@@ -45,6 +45,18 @@ export const toggleTodoAsync = createAsyncThunk(
   }
 );
 
+// delete todo
+
+export const removeTodoAsync = createAsyncThunk(
+  "todos/removeTodoAsync",
+  async (id) => {
+    await axios.delete(
+      `${process.env.REACT_APP_API_BASE_ENDPOINT}/todos/${id}`
+    );
+    return id;
+  }
+);
+
 export const todosSlice = createSlice({
   name: "todos",
   initialState: {
@@ -85,11 +97,11 @@ export const todosSlice = createSlice({
     //   item.completed = !item.completed;
     // },
 
-    destroy: (state, action) => {
-      const id = action.payload;
-      const filtered = state.items.filter((item) => item.id !== id);
-      state.items = filtered;
-    },
+    // destroy: (state, action) => {
+    //   const id = action.payload;
+    //   const filtered = state.items.filter((item) => item.id !== id);
+    //   state.items = filtered;
+    // },
 
     ChangeActiveFilter: (state, action) => {
       state.activeFilter = action.payload;
@@ -139,6 +151,14 @@ export const todosSlice = createSlice({
       const index = state.items.findIndex((item) => item.id === id);
       state.items[index].completed = completed;
     },
+
+    // delete todo
+
+    [removeTodoAsync.fulfilled]: (state, action) => {
+      const id = action.payload;
+      const index = state.items.findIndex((item) => item.id === id);
+      state.items.splice(index, 1);
+    },
   },
 });
 
@@ -155,6 +175,5 @@ export const selectFilteredTodos = (state) => {
   );
 };
 
-export const { destroy, ChangeActiveFilter, clearCompleted } =
-  todosSlice.actions;
+export const { ChangeActiveFilter, clearCompleted } = todosSlice.actions;
 export default todosSlice.reducer; // Bunu store'da import edip reducer field'ına vereceğiz.

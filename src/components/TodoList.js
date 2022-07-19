@@ -3,9 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import Error from "./Error";
 import {
   toggleTodoAsync,
-  destroy,
   selectFilteredTodos,
   getTodosAsync,
+  removeTodoAsync,
 } from "../redux/todos/todosSlice";
 
 function TodoList() {
@@ -19,9 +19,9 @@ function TodoList() {
     dispatch(getTodosAsync());
   }, []);
 
-  const handleDestroy = (id) => {
+  const handleDestroy = async (id) => {
     if (window.confirm("Are You Sure?")) {
-      dispatch(destroy(id));
+      await dispatch(removeTodoAsync(id));
     }
   };
 
